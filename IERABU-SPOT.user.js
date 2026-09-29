@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.3
+// @version      1.4
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -19,7 +19,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.3';
+    const SCRIPT_VERSION = '1.4';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
 
@@ -435,9 +435,13 @@
 
             <button id="ierabu-start-all" style="
                 width:100%;
-                padding:10px;
+                padding:10px 14px;
                 cursor:pointer;
                 margin-bottom:7px;
+                border:none;
+                border-radius:10px;
+                background:#e66b00;
+                color:#fff;
                 font-weight:bold;
             ">
                 絞り込み済み一覧を全件開始
