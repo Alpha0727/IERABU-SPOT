@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.4
+// @version      1.5
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -9,6 +9,7 @@
 // @run-at       document-idle
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
+// @connect      api.github.com
 // ==/UserScript==
 
 (function () {
@@ -19,9 +20,9 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.4';
+    const SCRIPT_VERSION = '1.5';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
-    const VERSION_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
+    const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -40,24 +41,19 @@
     }
 
     function checkScriptUpdate() {
-        const version = document.querySelector('#ierabu-spot-version');
-        const alertMark = document.querySelector('#ierabu-spot-update-alert');
-        const button = document.querySelector('#ierabu-spot-update');
+        const status = document.getElementById('ierabu-spot-version');
+        const alertMark = document.getElementById('ierabu-spot-update-alert');
+        const button = document.getElementById('ierabu-spot-update');
 
-        if (!version || !alertMark || !button) return;
+        if (!status || !alertMark || !button) return;
 
-        version.textContent = `Ver.${SCRIPT_VERSION}`;
-        version.style.color = '#777';
-        version.title = '最新版を確認中…';
-
-        // 通常時は更新UIを出さない
+        status.title = '更新確認中…';
         alertMark.style.display = 'none';
         button.style.display = 'none';
-        button.disabled = true;
 
         GM_xmlhttpRequest({
             method: 'GET',
-            url: VERSION_URL + '?t=' + Date.now(),
+            url: VERSION_URL + '&t=' + Date.now(),
             headers: { 'Cache-Control': 'no-cache' },
             onload: response => {
                 try {
@@ -65,37 +61,61 @@
                         throw new Error('version check failed');
                     }
 
-                    const info = JSON.parse(response.responseText || '{}');
+                    const apiData = JSON.parse(response.responseText || '{}');
+                    const encoded = Array.from(String(apiData.content || ''))
+                        .filter(ch => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.includes(ch))
+                        .join('');
+
+                    if (!encoded) {
+                        throw new Error('version metadata missing');
+                    }
+
+                    const binary = atob(encoded);
+                    const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+                    const info = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+
                     const latest = String(info.version || '').trim();
+
+                    status.title = latest
+                        ? `更新確認：成功\n現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}`
+                        : '更新確認：解析失敗';
+
+                    if (!latest || compareVersions(latest, SCRIPT_VERSION) <= 0) {
+                        return;
+                    }
+
                     const notes = String(info.notes || '').trim();
                     const installUrl = String(info.install_url || SCRIPT_URL).trim();
 
-                    if (!latest) throw new Error('version missing');
-
-                    version.title =
+                    alertMark.style.display = 'inline-flex';
+                    alertMark.title =
                         `現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}` +
-                        (notes ? `\n\n${notes}` : '');
+                        (notes ? '\n\n' + notes : '');
 
-                    if (compareVersions(latest, SCRIPT_VERSION) > 0) {
-                        alertMark.style.display = 'inline-flex';
-                        alertMark.title =
-                            `現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}` +
-                            (notes ? `\n\n${notes}` : '');
+                    button.style.display = 'inline-block';
+                    button.disabled = false;
+                    button.title = `Ver.${latest} にアップデート`;
+                    button.dataset.latestVersion = latest;
+                    button.dataset.installUrl = installUrl;
 
-                        button.style.display = 'inline-block';
-                        button.disabled = false;
-                        button.dataset.latestVersion = latest;
-                        button.dataset.installUrl = installUrl;
-                        button.title = `Ver.${latest} にアップデート`;
-                    }
                 } catch (error) {
-                    version.title = '更新確認に失敗しました';
-                    console.warn('[いえらぶ スポット] version check failed:', error);
+                    status.title =
+                        '更新確認：解析失敗\n' +
+                        String(error?.message || error);
+
+                    console.warn(
+                        '[いえらぶ スポット] version check skipped:',
+                        error
+                    );
                 }
             },
             onerror: error => {
-                version.title = '更新確認に失敗しました';
-                console.warn('[いえらぶ スポット] version check failed:', error);
+                status.title = '更新確認：通信失敗';
+
+                console.warn(
+                    '[いえらぶ スポット] version check failed:',
+                    error
+                );
             }
         });
     }
@@ -510,34 +530,37 @@
                 panel.remove();
             });
 
-        document
-            .querySelector('#ierabu-spot-update')
-            .addEventListener('click', event => {
-                const button = event.currentTarget;
-                if (button.disabled) return;
+        document.getElementById('ierabu-spot-update').onclick = event => {
+            const latest =
+                event.currentTarget.dataset.latestVersion ||
+                String(Date.now());
 
-                const latest = button.dataset.latestVersion || String(Date.now());
-                const installUrl = button.dataset.installUrl || SCRIPT_URL;
-                const separator = installUrl.includes('?') ? '&' : '?';
+            const installUrl =
+                event.currentTarget.dataset.installUrl ||
+                SCRIPT_URL;
 
-                const updateWindow = window.open(
-                    installUrl +
-                    separator +
-                    'install=' + encodeURIComponent(latest) +
-                    '&t=' + Date.now(),
-                    '_blank'
-                );
+            const separator =
+                installUrl.includes('?') ? '&' : '?';
 
-                // Tampermonkeyの更新タブを閉じたら、元のいえらぶ画面を自動リロード
-                if (updateWindow) {
-                    const watchUpdateWindow = setInterval(() => {
-                        if (!updateWindow.closed) return;
+            const updateWindow = window.open(
+                installUrl +
+                separator +
+                'install=' + encodeURIComponent(latest) +
+                '&t=' + Date.now(),
+                '_blank'
+            );
 
-                        clearInterval(watchUpdateWindow);
-                        location.reload();
-                    }, 500);
-                }
-            });
+            // SUUMO側と同じ：
+            // 更新用タブが閉じられたら元ページを1回だけ再読み込みする
+            if (updateWindow) {
+                const watchUpdateWindow = setInterval(() => {
+                    if (!updateWindow.closed) return;
+
+                    clearInterval(watchUpdateWindow);
+                    location.reload();
+                }, 500);
+            }
+        };
 
         renderLogs();
         updateStatus();
