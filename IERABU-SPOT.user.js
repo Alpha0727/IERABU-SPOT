@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.0
+// @version      1.1
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -16,8 +16,9 @@
 
     const STATE_KEY = 'ierabu_env_auto_all_state';
     const LOG_KEY   = 'ierabu_env_auto_all_log';
+    const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
 
-    const SCRIPT_VERSION = '1.0';
+    const SCRIPT_VERSION = '1.1';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
 
@@ -119,6 +120,49 @@
         sessionStorage.removeItem(STATE_KEY);
     }
 
+    class ManualStopError extends Error {
+        constructor() {
+            super('手動停止');
+            this.name = 'ManualStopError';
+        }
+    }
+
+    function requestManualStop() {
+        sessionStorage.setItem(STOP_KEY, '1');
+
+        const state = getState();
+        if (state) {
+            state.active = false;
+            state.stage = 'stopped';
+            setState(state);
+        }
+    }
+
+    function clearManualStop() {
+        sessionStorage.removeItem(STOP_KEY);
+    }
+
+    function isManualStopRequested() {
+        return sessionStorage.getItem(STOP_KEY) === '1';
+    }
+
+    function ensureRunning() {
+        const state = getState();
+
+        if (isManualStopRequested() || !state || !state.active) {
+            throw new ManualStopError();
+        }
+
+        return state;
+    }
+
+    function setActiveStage(stage) {
+        const state = ensureRunning();
+        state.stage = stage;
+        setState(state);
+        return state;
+    }
+
     function getLogs() {
         try {
             return JSON.parse(sessionStorage.getItem(LOG_KEY) || '[]');
@@ -154,6 +198,7 @@
         const start = Date.now();
 
         while (Date.now() - start < timeout) {
+            ensureRunning();
             const el = document.querySelector(selector);
             if (el) return el;
             await sleep(300);
@@ -166,6 +211,7 @@
         const start = Date.now();
 
         while (Date.now() - start < timeout) {
+            ensureRunning();
             try {
                 if (fn()) return true;
             } catch (_) {}
@@ -408,13 +454,7 @@
         document
             .querySelector('#ierabu-stop')
             .addEventListener('click', () => {
-                const state = getState();
-
-                if (state) {
-                    state.active = false;
-                    state.stage = 'stopped';
-                    setState(state);
-                }
+                requestManualStop();
 
                 pushLog('■ 手動停止しました');
                 updateStatus();
@@ -425,6 +465,7 @@
         document
             .querySelector('#ierabu-reset')
             .addEventListener('click', () => {
+                clearManualStop();
                 clearState();
                 clearLogs();
                 updateStatus();
@@ -548,6 +589,7 @@
 
         if (!ok) return;
 
+        clearManualStop();
         sessionStorage.setItem(LOG_KEY, JSON.stringify([]));
 
         const state = {
@@ -586,6 +628,12 @@
         pushLog(`▶ ${state.index + 1}/${state.queue.length} 物件ID ${id} を開きます`);
         updateStatus();
 
+        try {
+            ensureRunning();
+        } catch (_) {
+            return;
+        }
+
         location.href = url;
     }
 
@@ -612,8 +660,7 @@
         }
 
         try {
-            state.stage = 'editing';
-            setState(state);
+            setActiveStage('editing');
             updateStatus();
 
             pushLog('① 周辺環境を開きます');
@@ -621,14 +668,17 @@
             const environmentTab =
                 await waitFor('#qtipEnvironment');
 
+            ensureRunning();
             environmentTab.click();
             await sleep(700);
+            ensureRunning();
 
             pushLog('② 10km以内を開きます');
 
             const tenKm =
                 await waitFor('#spotBatchNavitimeSetup100');
 
+            ensureRunning();
             tenKm.click();
 
             const allCheck =
@@ -639,8 +689,10 @@
             pushLog('③ 候補一覧を確認しました');
 
             if (!allCheck.checked) {
+                ensureRunning();
                 allCheck.click();
                 await sleep(500);
+                ensureRunning();
             }
 
             if (!allCheck.checked) {
@@ -660,10 +712,12 @@
                 );
             }
 
+            ensureRunning();
             addSpot.click();
             pushLog('⑤ 周辺環境を反映しました');
 
             await sleep(1000);
+            ensureRunning();
 
             pushLog('⑥ 徒歩距離の反映を待っています…');
 
@@ -735,15 +789,16 @@
                 );
             }
 
-            state.stage = 'afterFirstSave';
-            setState(state);
+            setActiveStage('afterFirstSave');
             updateStatus();
 
             pushLog('⑦ 1回目の保存を実行します');
 
+            ensureRunning();
             saveButton.click();
 
         } catch (e) {
+            if (e instanceof ManualStopError) return;
             stopWithError(e.message);
         }
     }
@@ -759,6 +814,12 @@
         if (state.stage !== 'afterFirstSave') return;
 
         await sleep(1200);
+
+        try {
+            ensureRunning();
+        } catch (_) {
+            return;
+        }
 
         const duplicateChecks =
             document.querySelectorAll('.unifyIds');
@@ -787,8 +848,20 @@
             // ★ 必須工程 ★
             pushLog('⑧ 重複物件の「選択を解除」を実行します');
 
+            try {
+                ensureRunning();
+            } catch (_) {
+                return;
+            }
+
             clearButton.click();
             await sleep(500);
+
+            try {
+                ensureRunning();
+            } catch (_) {
+                return;
+            }
 
             const cleared =
                 await waitUntil(() => {
@@ -831,11 +904,20 @@
                 return;
             }
 
-            state.stage = 'finalSaving';
-            setState(state);
+            try {
+                setActiveStage('finalSaving');
+            } catch (_) {
+                return;
+            }
             updateStatus();
 
             pushLog('⑨ 最終保存を実行します');
+
+            try {
+                ensureRunning();
+            } catch (_) {
+                return;
+            }
 
             save.click();
             return;
@@ -844,6 +926,12 @@
         // =====================================================
         // 重複なし
         // =====================================================
+
+        try {
+            ensureRunning();
+        } catch (_) {
+            return;
+        }
 
         pushLog('✅ 重複物件なし');
         completeCurrentAndNext();
@@ -868,9 +956,13 @@
     // =========================================================
 
     function completeCurrentAndNext() {
-        const state = getState();
+        let state;
 
-        if (!state || !state.active) return;
+        try {
+            state = ensureRunning();
+        } catch (_) {
+            return;
+        }
 
         const doneNumber = state.index + 1;
 
@@ -884,8 +976,11 @@
             return;
         }
 
-        state.stage = 'goEdit';
-        setState(state);
+        try {
+            state = setActiveStage('goEdit');
+        } catch (_) {
+            return;
+        }
         updateStatus();
 
         const nextUrl = state.queue[state.index];
@@ -894,6 +989,12 @@
         pushLog(`次の物件ID ${nextId} へ進みます`);
 
         setTimeout(() => {
+            try {
+                ensureRunning();
+            } catch (_) {
+                return;
+            }
+
             location.href = nextUrl;
         }, 800);
     }
@@ -908,6 +1009,7 @@
             setState(state);
         }
 
+        clearManualStop();
         pushLog(`🎉 全件完了：${total}件すべて処理しました`);
         updateStatus();
 
