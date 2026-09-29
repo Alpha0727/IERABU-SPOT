@@ -1,5 +1,5 @@
 {
-  "version": "1.2",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.2.user.js",
-  "notes": "スポット画面の開閉状態を画面遷移後も維持。アップデートがない通常時は更新ボタンを非表示にし、新版がある場合のみ「！」とアップデートボタンを表示します。"
+  "version": "1.3",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.3.user.js",
+  "notes": "アップデート後、Tampermonkeyの更新タブを閉じると元のいえらぶ画面を自動でリロードするようにしました。"
 }
