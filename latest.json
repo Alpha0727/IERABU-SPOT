@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js",
-  "notes": "スポット周辺環境自動化の初回GitHub版。絞り込み済み全件処理、徒歩距離確認、重複物件の選択解除確認、停止・リセット・進捗ログに対応。"
+  "notes": "停止ボタンを強化。停止要求後は待機処理・クリック・保存・次物件への遷移を即時中断し、古い実行状態による停止解除も防止します。"
 }
