@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.2
+// @version      1.3
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -19,7 +19,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.2';
+    const SCRIPT_VERSION = '1.3';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
 
@@ -516,13 +516,23 @@
                 const installUrl = button.dataset.installUrl || SCRIPT_URL;
                 const separator = installUrl.includes('?') ? '&' : '?';
 
-                window.open(
+                const updateWindow = window.open(
                     installUrl +
                     separator +
                     'install=' + encodeURIComponent(latest) +
                     '&t=' + Date.now(),
                     '_blank'
                 );
+
+                // Tampermonkeyの更新タブを閉じたら、元のいえらぶ画面を自動リロード
+                if (updateWindow) {
+                    const watchUpdateWindow = setInterval(() => {
+                        if (!updateWindow.closed) return;
+
+                        clearInterval(watchUpdateWindow);
+                        location.reload();
+                    }, 500);
+                }
             });
 
         renderLogs();
