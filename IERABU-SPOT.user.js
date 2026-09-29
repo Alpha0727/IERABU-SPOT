@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.1
+// @version      1.2
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -17,8 +17,9 @@
     const STATE_KEY = 'ierabu_env_auto_all_state';
     const LOG_KEY   = 'ierabu_env_auto_all_log';
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
+    const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.1';
+    const SCRIPT_VERSION = '1.2';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
 
@@ -40,15 +41,19 @@
 
     function checkScriptUpdate() {
         const version = document.querySelector('#ierabu-spot-version');
+        const alertMark = document.querySelector('#ierabu-spot-update-alert');
         const button = document.querySelector('#ierabu-spot-update');
 
-        if (!version || !button) return;
+        if (!version || !alertMark || !button) return;
 
         version.textContent = `Ver.${SCRIPT_VERSION}`;
+        version.style.color = '#777';
         version.title = '最新版を確認中…';
+
+        // 通常時は更新UIを出さない
+        alertMark.style.display = 'none';
+        button.style.display = 'none';
         button.disabled = true;
-        button.textContent = 'アップデート';
-        button.style.opacity = '0.55';
 
         GM_xmlhttpRequest({
             method: 'GET',
@@ -72,21 +77,16 @@
                         (notes ? `\n\n${notes}` : '');
 
                     if (compareVersions(latest, SCRIPT_VERSION) > 0) {
-                        version.textContent = `Ver.${SCRIPT_VERSION} !`;
-                        version.style.color = '#d97706';
+                        alertMark.style.display = 'inline-flex';
+                        alertMark.title =
+                            `現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}` +
+                            (notes ? `\n\n${notes}` : '');
 
+                        button.style.display = 'inline-block';
                         button.disabled = false;
-                        button.style.opacity = '1';
-                        button.style.background = '#2f7cf6';
-                        button.style.color = '#fff';
                         button.dataset.latestVersion = latest;
                         button.dataset.installUrl = installUrl;
                         button.title = `Ver.${latest} にアップデート`;
-                    } else {
-                        version.style.color = '#777';
-                        button.disabled = true;
-                        button.style.opacity = '0.55';
-                        button.title = `最新版です（Ver.${SCRIPT_VERSION}）`;
                     }
                 } catch (error) {
                     version.title = '更新確認に失敗しました';
@@ -140,6 +140,14 @@
 
     function clearManualStop() {
         sessionStorage.removeItem(STOP_KEY);
+    }
+
+    function setPanelOpen(value) {
+        sessionStorage.setItem(PANEL_OPEN_KEY, value ? '1' : '0');
+    }
+
+    function isPanelOpen() {
+        return sessionStorage.getItem(PANEL_OPEN_KEY) === '1';
     }
 
     function isManualStopRequested() {
@@ -313,10 +321,12 @@
             const existing = document.querySelector('#ierabu-auto-panel');
 
             if (existing) {
+                setPanelOpen(false);
                 existing.remove();
                 return;
             }
 
+            setPanelOpen(true);
             openSpotPanel();
         });
 
@@ -325,6 +335,8 @@
 
     function openSpotPanel() {
         if (document.querySelector('#ierabu-auto-panel')) return;
+
+        setPanelOpen(true);
 
         const panel = document.createElement('div');
         panel.id = 'ierabu-auto-panel';
@@ -377,7 +389,22 @@
                     gap:6px;
                     flex-shrink:0;
                 ">
+                    <span id="ierabu-spot-update-alert" style="
+                        display:none;
+                        align-items:center;
+                        justify-content:center;
+                        width:18px;
+                        height:18px;
+                        border-radius:50%;
+                        background:#f0a000;
+                        color:#fff;
+                        font-weight:bold;
+                        font-size:12px;
+                        cursor:help;
+                    ">!</span>
+
                     <button id="ierabu-spot-update" type="button" disabled style="
+                        display:none;
                         padding:5px 9px;
                         border:0;
                         border-radius:6px;
@@ -386,7 +413,6 @@
                         font-size:11px;
                         font-weight:bold;
                         cursor:pointer;
-                        opacity:.55;
                     ">アップデート</button>
 
                     <button id="ierabu-spot-close" type="button" style="
@@ -475,7 +501,10 @@
 
         document
             .querySelector('#ierabu-spot-close')
-            .addEventListener('click', () => panel.remove());
+            .addEventListener('click', () => {
+                setPanelOpen(false);
+                panel.remove();
+            });
 
         document
             .querySelector('#ierabu-spot-update')
@@ -590,6 +619,7 @@
         if (!ok) return;
 
         clearManualStop();
+        setPanelOpen(true);
         sessionStorage.setItem(LOG_KEY, JSON.stringify([]));
 
         const state = {
@@ -1063,6 +1093,12 @@
 
     window.addEventListener('load', () => {
         createPanel();
+
+        // 開いた状態で処理を開始した場合は、画面遷移後も自動で再表示する
+        if (isPanelOpen()) {
+            openSpotPanel();
+        }
+
         resumeAutomation();
     });
 
