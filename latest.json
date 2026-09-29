@@ -1,5 +1,5 @@
 {
-  "version": "1.5",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.5.user.js",
-  "notes": "更新機構をSUUMO側と同方式に統一。GitHub APIで最新版を確認し、固定版releaseを開き、更新タブを閉じた後に元のいえらぶ画面を自動リロードします。"
+  "version": "1.6",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.6.user.js",
+  "notes": "アップデート動作確認用の空アップデートです。機能変更はありません。"
 }
