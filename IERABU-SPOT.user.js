@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.7
+// @version      1.8
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,7 +20,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.7';
+    const SCRIPT_VERSION = '1.8';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
 
@@ -387,11 +387,11 @@
             padding: '0 14px',
             border: 'none',
             borderRadius: '9px',
-            background: '#3b82f6',
+            background: '#205375',
             color: '#ffffff',
             fontSize: '14px',
             fontWeight: '700',
-            boxShadow: '0 2px 8px rgba(59,130,246,.26)'
+            boxShadow: '0 2px 8px rgba(32,83,117,.28)'
         });
 
         // スポットの真上
@@ -407,11 +407,11 @@
                 padding: '0 14px',
                 border: 'none',
                 borderRadius: '9px',
-                background: '#475569',
+                background: '#112B3C',
                 color: '#ffffff',
                 fontSize: '14px',
                 fontWeight: '700',
-                boxShadow: '0 2px 8px rgba(71,85,105,.24)'
+                boxShadow: '0 2px 8px rgba(17,43,60,.28)'
             });
         }
     }
@@ -463,7 +463,7 @@
             padding: '11px 18px',
             border: 'none',
             borderRadius: '10px',
-            background: '#2f7cf6',
+            background: '#205375',
             color: '#fff',
             fontSize: '14px',
             fontWeight: 'bold',
