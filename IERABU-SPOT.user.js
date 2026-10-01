@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      2.2
+// @version      2.3
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,9 +20,10 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '2.2';
+    const SCRIPT_VERSION = '2.3';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
+  const VERSION_RAW_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -51,6 +52,63 @@
         alertMark.style.display = 'none';
         button.style.display = 'none';
 
+        const applyInfo = info => {
+            const latest = String(info.version || '').trim();
+
+            status.title = latest
+                ? `更新確認：成功\n現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}`
+                : '更新確認：解析失敗';
+
+            if (!latest || compareVersions(latest, SCRIPT_VERSION) <= 0) {
+                return;
+            }
+
+            const notes = String(info.notes || '').trim();
+            const installUrl = String(info.install_url || SCRIPT_URL).trim();
+
+            alertMark.style.display = 'inline-flex';
+            alertMark.title =
+                `現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}` +
+                (notes ? '\n\n' + notes : '');
+
+            button.style.display = 'inline-block';
+            button.disabled = false;
+            button.title = `Ver.${latest} にアップデート`;
+            button.dataset.latestVersion = latest;
+            button.dataset.installUrl = installUrl;
+        };
+
+        const checkRaw = () => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: VERSION_RAW_URL + '?t=' + Date.now(),
+                headers: { 'Cache-Control': 'no-cache' },
+                onload: response => {
+                    try {
+                        if (response.status < 200 || response.status >= 300) {
+                            throw new Error('raw version check failed');
+                        }
+                        applyInfo(JSON.parse(response.responseText || '{}'));
+                    } catch (error) {
+                        status.title =
+                            '更新確認：失敗\n' +
+                            String(error?.message || error);
+                        console.warn(
+                            '[いえらぶ スポット] raw version check failed:',
+                            error
+                        );
+                    }
+                },
+                onerror: error => {
+                    status.title = '更新確認：通信失敗';
+                    console.warn(
+                        '[いえらぶ スポット] raw version check failed:',
+                        error
+                    );
+                }
+            });
+        };
+
         GM_xmlhttpRequest({
             method: 'GET',
             url: VERSION_URL + '&t=' + Date.now(),
@@ -58,7 +116,7 @@
             onload: response => {
                 try {
                     if (response.status < 200 || response.status >= 300) {
-                        throw new Error('version check failed');
+                        throw new Error('api version check failed');
                     }
 
                     const apiData = JSON.parse(response.responseText || '{}');
@@ -73,49 +131,22 @@
                     const binary = atob(encoded);
                     const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
                     const info = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-
-                    const latest = String(info.version || '').trim();
-
-                    status.title = latest
-                        ? `更新確認：成功\n現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}`
-                        : '更新確認：解析失敗';
-
-                    if (!latest || compareVersions(latest, SCRIPT_VERSION) <= 0) {
-                        return;
-                    }
-
-                    const notes = String(info.notes || '').trim();
-                    const installUrl = String(info.install_url || SCRIPT_URL).trim();
-
-                    alertMark.style.display = 'inline-flex';
-                    alertMark.title =
-                        `現在：Ver.${SCRIPT_VERSION}\n最新版：Ver.${latest}` +
-                        (notes ? '\n\n' + notes : '');
-
-                    button.style.display = 'inline-block';
-                    button.disabled = false;
-                    button.title = `Ver.${latest} にアップデート`;
-                    button.dataset.latestVersion = latest;
-                    button.dataset.installUrl = installUrl;
+                    applyInfo(info);
 
                 } catch (error) {
-                    status.title =
-                        '更新確認：解析失敗\n' +
-                        String(error?.message || error);
-
                     console.warn(
-                        '[いえらぶ スポット] version check skipped:',
+                        '[いえらぶ スポット] API version check failed; trying raw:',
                         error
                     );
+                    checkRaw();
                 }
             },
             onerror: error => {
-                status.title = '更新確認：通信失敗';
-
                 console.warn(
-                    '[いえらぶ スポット] version check failed:',
+                    '[いえらぶ スポット] API version check failed; trying raw:',
                     error
                 );
+                checkRaw();
             }
         });
     }
