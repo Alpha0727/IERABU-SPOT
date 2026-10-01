@@ -1,5 +1,5 @@
 {
-  "version": "1.7",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.7.user.js",
-  "notes": "「入力用文言」を基準に、指摘設定→スポット→入力用文言の順で左下に縦配置。指摘設定は濃いグレー、スポットは青、入力用文言は白系に色バランスを統一しました。"
+  "version": "1.8",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.8.user.js",
+  "notes": "A案の配色に変更。指摘設定 #112B3C → スポット #205375 → 入力用文言は既存の白系を維持し、上から下へ自然につながる配色にしました。"
 }
