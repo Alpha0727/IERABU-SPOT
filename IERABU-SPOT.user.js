@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      2.3
+// @version      2.4
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,7 +20,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '2.3';
+    const SCRIPT_VERSION = '2.4';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
   const VERSION_RAW_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
@@ -849,6 +849,7 @@
             stage: 'goEdit',
             queue: urls,
             index: 0,
+            completedIds: [],
             startedAt: Date.now()
         };
 
@@ -903,6 +904,17 @@
         const expectedUrl = state.queue[state.index];
         const expectedId = extractPropertyId(expectedUrl);
         const currentId = extractPropertyId(location.href);
+
+        if (
+            expectedId &&
+            Array.isArray(state.completedIds) &&
+            state.completedIds.includes(expectedId)
+        ) {
+            stopWithError(
+                `完了済み物件ID ${expectedId} の再処理を検出したため安全停止しました`
+            );
+            return;
+        }
 
         if (expectedId && currentId && expectedId !== currentId) {
             stopWithError(
@@ -1216,11 +1228,43 @@
             return;
         }
 
+        const currentUrl = state.queue[state.index];
+        const completedId = extractPropertyId(currentUrl);
         const doneNumber = state.index + 1;
+
+        if (!Array.isArray(state.completedIds)) {
+            state.completedIds = [];
+        }
+
+        if (completedId && !state.completedIds.includes(completedId)) {
+            state.completedIds.push(completedId);
+        }
 
         pushLog(`✅ ${doneNumber}/${state.queue.length} 件目 完了`);
 
+        // ★重要★
+        // indexを進めた状態を先に保存する。
+        // 以前はこの保存前に setActiveStage() が保存済みstateを再読込し、
+        // indexが元に戻って同じ物件を繰り返していた。
         state.index += 1;
+
+        // 完了済みIDが次に残っていても再処理しない
+        while (state.index < state.queue.length) {
+            const candidateId =
+                extractPropertyId(state.queue[state.index]);
+
+            if (
+                !candidateId ||
+                !state.completedIds.includes(candidateId)
+            ) {
+                break;
+            }
+
+            pushLog(
+                `↪ 完了済み物件ID ${candidateId} をスキップします`
+            );
+            state.index += 1;
+        }
 
         if (state.index >= state.queue.length) {
             setState(state);
@@ -1228,26 +1272,52 @@
             return;
         }
 
-        try {
-            state = setActiveStage('goEdit');
-        } catch (_) {
-            return;
-        }
+        state.stage = 'goEdit';
+        setState(state);
         updateStatus();
 
         const nextUrl = state.queue[state.index];
         const nextId = extractPropertyId(nextUrl);
 
+        if (
+            nextId &&
+            completedId &&
+            nextId === completedId
+        ) {
+            stopWithError(
+                `同じ物件ID ${nextId} が次対象になったため安全停止しました`
+            );
+            return;
+        }
+
         pushLog(`次の物件ID ${nextId} へ進みます`);
 
         setTimeout(() => {
+            let latestState;
+
             try {
-                ensureRunning();
+                latestState = ensureRunning();
             } catch (_) {
                 return;
             }
 
-            location.href = nextUrl;
+            const latestUrl =
+                latestState.queue[latestState.index];
+            const latestId =
+                extractPropertyId(latestUrl);
+
+            if (
+                latestId &&
+                completedId &&
+                latestId === completedId
+            ) {
+                stopWithError(
+                    `同じ物件ID ${latestId} への再遷移を検出したため安全停止しました`
+                );
+                return;
+            }
+
+            location.href = latestUrl;
         }, 800);
     }
 
