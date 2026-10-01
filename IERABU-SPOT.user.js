@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.9
+// @version      2.0
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,7 +20,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.9';
+    const SCRIPT_VERSION = '2.0';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
 
@@ -457,10 +457,13 @@
 
         Object.assign(toggle.style, {
             position: 'fixed',
-            right: '16px',
-            bottom: '64px',
+            left: '14px',
+            right: 'auto',
+            bottom: '52px',
+            width: '120px',
+            height: '36px',
             zIndex: '2147483646',
-            padding: '11px 18px',
+            padding: '0 14px',
             border: 'none',
             borderRadius: '10px',
             background: '#205375',
@@ -485,7 +488,6 @@
         });
 
         document.body.appendChild(toggle);
-        scheduleLauncherLayout();
     }
 
     function openSpotPanel() {
@@ -1281,7 +1283,6 @@
 
     window.addEventListener('load', () => {
         createPanel();
-        watchLauncherLayout();
 
         // 開いた状態で処理を開始した場合は、画面遷移後も自動で再表示する
         if (isPanelOpen()) {
