@@ -1,5 +1,5 @@
 {
-  "version": "1.9",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.9.user.js",
-  "notes": "スポットの詳細画面をボタン色 #205375 に合わせて統一。ヘッダー・枠・状態欄・停止/リセット・ログ・更新ボタンを同系色へ調整。全件開始のオレンジは維持しています。"
+  "version": "2.0",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js",
+  "notes": "スポットボタンを左下の入力用文言の真上に固定配置しました。"
 }
