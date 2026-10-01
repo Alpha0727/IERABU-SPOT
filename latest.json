@@ -1,5 +1,5 @@
 {
-  "version": "1.6",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.6.user.js",
-  "notes": "アップデート動作確認用の空アップデートです。機能変更はありません。"
+  "version": "1.7",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.7.user.js",
+  "notes": "「入力用文言」を基準に、指摘設定→スポット→入力用文言の順で左下に縦配置。指摘設定は濃いグレー、スポットは青、入力用文言は白系に色バランスを統一しました。"
 }
