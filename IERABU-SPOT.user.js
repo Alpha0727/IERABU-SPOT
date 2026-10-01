@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.6
+// @version      1.7
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,7 +20,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.6';
+    const SCRIPT_VERSION = '1.7';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
 
@@ -311,6 +311,140 @@
     }
 
     // =========================================================
+    // 右下ボタン配置
+    // 「入力用文言」を基準に
+    // 指摘設定 → スポット → 入力用文言
+    // の順で縦に並べる
+    // =========================================================
+
+    function findInputWordingButton() {
+        const candidates = [
+            ...document.querySelectorAll(
+                'button, a, input[type="button"], input[type="submit"], [role="button"]'
+            )
+        ];
+
+        return candidates.find(el => {
+            const label = String(
+                el.innerText ||
+                el.textContent ||
+                el.value ||
+                ''
+            ).replace(/\s+/g, '').trim();
+
+            if (label !== '入力用文言') return false;
+
+            const rect = el.getBoundingClientRect();
+
+            return (
+                rect.width > 0 &&
+                rect.height > 0 &&
+                rect.bottom >= 0 &&
+                rect.top <= window.innerHeight
+            );
+        }) || null;
+    }
+
+    function applyLauncherLayout() {
+        const inputButton = findInputWordingButton();
+        const spotButton = document.getElementById('ierabu-spot-toggle');
+        const settingsButton = document.getElementById('tm-ielove-settings');
+
+        if (!inputButton || !spotButton) return;
+
+        // 入力用文言：白系
+        Object.assign(inputButton.style, {
+            minWidth: '118px',
+            height: '36px',
+            padding: '0 14px',
+            border: '1px solid #9aa6b2',
+            borderRadius: '9px',
+            background: '#ffffff',
+            color: '#334155',
+            fontWeight: '700',
+            boxShadow: '0 2px 8px rgba(0,0,0,.14)'
+        });
+
+        const inputRect = inputButton.getBoundingClientRect();
+        const stackLeft = Math.max(8, Math.round(inputRect.left));
+        const stackWidth = Math.max(118, Math.round(inputRect.width));
+        const gap = 6;
+        const buttonHeight = 36;
+
+        // 入力用文言の真上
+        const spotBottom =
+            Math.max(
+                8,
+                Math.round(window.innerHeight - inputRect.top + gap)
+            );
+
+        Object.assign(spotButton.style, {
+            left: stackLeft + 'px',
+            right: 'auto',
+            bottom: spotBottom + 'px',
+            width: stackWidth + 'px',
+            height: buttonHeight + 'px',
+            padding: '0 14px',
+            border: 'none',
+            borderRadius: '9px',
+            background: '#3b82f6',
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: '700',
+            boxShadow: '0 2px 8px rgba(59,130,246,.26)'
+        });
+
+        // スポットの真上
+        if (settingsButton) {
+            Object.assign(settingsButton.style, {
+                left: stackLeft + 'px',
+                right: 'auto',
+                bottom:
+                    (spotBottom + buttonHeight + gap) +
+                    'px',
+                width: stackWidth + 'px',
+                height: buttonHeight + 'px',
+                padding: '0 14px',
+                border: 'none',
+                borderRadius: '9px',
+                background: '#475569',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '700',
+                boxShadow: '0 2px 8px rgba(71,85,105,.24)'
+            });
+        }
+    }
+
+    let launcherLayoutScheduled = false;
+
+    function scheduleLauncherLayout() {
+        if (launcherLayoutScheduled) return;
+
+        launcherLayoutScheduled = true;
+
+        requestAnimationFrame(() => {
+            launcherLayoutScheduled = false;
+            applyLauncherLayout();
+        });
+    }
+
+    function watchLauncherLayout() {
+        scheduleLauncherLayout();
+
+        const observer = new MutationObserver(() => {
+            scheduleLauncherLayout();
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        window.addEventListener('resize', scheduleLauncherLayout);
+    }
+
+    // =========================================================
     // パネル
     // =========================================================
 
@@ -351,6 +485,7 @@
         });
 
         document.body.appendChild(toggle);
+        scheduleLauncherLayout();
     }
 
     function openSpotPanel() {
@@ -1130,6 +1265,7 @@
 
     window.addEventListener('load', () => {
         createPanel();
+        watchLauncherLayout();
 
         // 開いた状態で処理を開始した場合は、画面遷移後も自動で再表示する
         if (isPanelOpen()) {
