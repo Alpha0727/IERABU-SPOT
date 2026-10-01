@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      2.1
+// @version      2.2
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,7 +20,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '2.1';
+    const SCRIPT_VERSION = '2.2';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
 
@@ -500,7 +500,7 @@
 
         Object.assign(panel.style, {
             position: 'fixed',
-            left: '418px',
+            left: '14px',
             right: 'auto',
             bottom: '144px',
             width: '370px',
