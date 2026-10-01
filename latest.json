@@ -1,5 +1,5 @@
 {
-  "version": "1.8",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.8.user.js",
-  "notes": "A案の配色に変更。指摘設定 #112B3C → スポット #205375 → 入力用文言は既存の白系を維持し、上から下へ自然につながる配色にしました。"
+  "version": "1.9",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-1.9.user.js",
+  "notes": "スポットの詳細画面をボタン色 #205375 に合わせて統一。ヘッダー・枠・状態欄・停止/リセット・ログ・更新ボタンを同系色へ調整。全件開始のオレンジは維持しています。"
 }
