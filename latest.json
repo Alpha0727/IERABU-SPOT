@@ -1,5 +1,5 @@
 {
-  "version": "2.3",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-2.3.user.js",
-  "notes": "更新確認を強化。GitHub APIで確認できない場合はrawのlatest.jsonへ自動切替する二重チェックを追加しました。"
+  "version": "2.4",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-2.4.user.js",
+  "notes": "同じ物件を繰り返す不具合を修正。1件完了時にindexを先に保存してから次物件へ進むよう変更し、完了済み物件IDの再処理・再遷移を安全停止するガードも追加しました。"
 }
