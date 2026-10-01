@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      1.8
+// @version      1.9
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
 // @match        https://cloud.ielove.jp/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
@@ -20,7 +20,7 @@
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '1.8';
+    const SCRIPT_VERSION = '1.9';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
 
@@ -503,11 +503,11 @@
             width: '370px',
             maxWidth: 'calc(100vw - 32px)',
             background: '#fff',
-            border: '2px solid #2f7cf6',
+            border: '2px solid #205375',
             borderRadius: '10px',
             padding: '12px',
             zIndex: '2147483646',
-            boxShadow: '0 5px 18px rgba(0,0,0,.25)',
+            boxShadow: '0 7px 22px rgba(32,83,117,.24)',
             fontSize: '13px'
         });
 
@@ -517,7 +517,11 @@
                 align-items:center;
                 justify-content:space-between;
                 gap:10px;
-                margin-bottom:9px;
+                margin:-12px -12px 10px;
+                padding:11px 12px;
+                background:#205375;
+                color:#fff;
+                border-radius:8px 8px 0 0;
             ">
                 <div style="
                     display:flex;
@@ -533,7 +537,7 @@
 
                     <span id="ierabu-spot-version" style="
                         font-size:11px;
-                        color:#777;
+                        color:#DDEAF0;
                         white-space:nowrap;
                     ">Ver.${SCRIPT_VERSION}</span>
                 </div>
@@ -563,8 +567,8 @@
                         padding:5px 9px;
                         border:0;
                         border-radius:6px;
-                        background:#2f7cf6;
-                        color:#fff;
+                        background:#F4F8FA;
+                        color:#205375;
                         font-size:11px;
                         font-weight:bold;
                         cursor:pointer;
@@ -573,6 +577,7 @@
                     <button id="ierabu-spot-close" type="button" style="
                         border:none;
                         background:transparent;
+                        color:#fff;
                         font-size:18px;
                         cursor:pointer;
                         padding:0 2px;
@@ -583,8 +588,10 @@
             <div id="ierabu-status" style="
                 margin-bottom:8px;
                 padding:7px;
-                background:#f2f4fb;
-                border-radius:4px;
+                background:#EEF5F8;
+                border:1px solid #D6E5EC;
+                color:#1F425A;
+                border-radius:6px;
                 line-height:1.5;
             ">待機中</div>
 
@@ -604,18 +611,27 @@
 
             <button id="ierabu-stop" style="
                 width:100%;
-                padding:7px;
+                padding:8px;
                 cursor:pointer;
                 margin-bottom:7px;
+                border:1px solid #8AA9BC;
+                border-radius:8px;
+                background:#F3F8FA;
+                color:#205375;
+                font-weight:bold;
             ">
                 自動処理を停止
             </button>
 
             <button id="ierabu-reset" style="
                 width:100%;
-                padding:6px;
+                padding:8px;
                 cursor:pointer;
                 margin-bottom:8px;
+                border:1px solid #B7CBD6;
+                border-radius:8px;
+                background:#FAFCFD;
+                color:#4C6675;
             ">
                 状態をリセット
             </button>
@@ -623,9 +639,9 @@
             <div id="ierabu-auto-log" style="
                 height:200px;
                 overflow:auto;
-                border:1px solid #ccc;
+                border:1px solid #D6E5EC;
                 padding:6px;
-                background:#f7f7f7;
+                background:#F8FBFC;
                 font-size:11px;
             "></div>
         `;
