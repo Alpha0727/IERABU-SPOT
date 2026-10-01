@@ -1,5 +1,5 @@
 {
-  "version": "2.1",
-  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-2.1.user.js",
-  "notes": "スポットボタンの間隔を調整し、詳細画面を指摘設定詳細の右隣へ移動しました。両方同時に開いても重ならない配置にしています。"
+  "version": "2.2",
+  "install_url": "https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/releases/IERABU-SPOT-2.2.user.js",
+  "notes": "スポット詳細画面を指摘設定詳細画面と同じ位置 left:14px / bottom:144px に変更しました。両方開いた場合は同じ位置で重なります。"
 }
