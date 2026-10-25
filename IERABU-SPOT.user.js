@@ -3,6 +3,7 @@
 // @namespace    ierabu-spot-environment
 // @version      2.4
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
+// @match        https://cloud.ielove.jp/rent
 // @match        https://cloud.ielove.jp/rent/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
 // @downloadURL  https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
