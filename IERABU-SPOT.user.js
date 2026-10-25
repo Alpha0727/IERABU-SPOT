@@ -3,7 +3,7 @@
 // @namespace    ierabu-spot-environment
 // @version      2.4
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
-// @match        https://cloud.ielove.jp/*
+// @match        https://cloud.ielove.jp/rent/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
 // @downloadURL  https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
 // @run-at       document-idle
@@ -1384,6 +1384,9 @@
     // =========================================================
 
     window.addEventListener('load', () => {
+        // Launcher only on いえらぶCLOUD rental pages. Existing edit-page automation remains unchanged.
+        if (location.hostname !== 'cloud.ielove.jp' ||
+            !/^\/rent(?:\/|$)/.test(location.pathname)) return;
         createPanel();
 
         // 開いた状態で処理を開始した場合は、画面遷移後も自動で再表示する
