@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         いえらぶ スポット 周辺環境
 // @namespace    ierabu-spot-environment
-// @version      2.4
+// @version      2.5
 // @description  いえらぶCLOUDの絞り込み済み物件に周辺環境を安全に連続自動設定します。
-// @match        https://cloud.ielove.jp/*
+// @match        https://cloud.ielove.jp/rent/*
 // @updateURL    https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
 // @downloadURL  https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js
 // @run-at       document-idle
@@ -15,12 +15,16 @@
 (function () {
     'use strict';
 
+    // /rent/ 以外の画面では実行しない（既存インストールからの移行時も安全）。
+    if (location.origin !== 'https://cloud.ielove.jp' ||
+        !location.pathname.startsWith('/rent/')) return;
+
     const STATE_KEY = 'ierabu_env_auto_all_state';
     const LOG_KEY   = 'ierabu_env_auto_all_log';
     const STOP_KEY  = 'ierabu_env_auto_all_stop_requested';
     const PANEL_OPEN_KEY = 'ierabu_spot_panel_open';
 
-    const SCRIPT_VERSION = '2.4';
+    const SCRIPT_VERSION = '2.5';
     const SCRIPT_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/IERABU-SPOT.user.js';
     const VERSION_URL = 'https://api.github.com/repos/Alpha0727/IERABU-SPOT/contents/latest.json?ref=main';
   const VERSION_RAW_URL = 'https://raw.githubusercontent.com/Alpha0727/IERABU-SPOT/main/latest.json';
